@@ -7,7 +7,7 @@ st.set_page_config(page_title="EduMind AI Pro", page_icon="🎓", layout="wide")
 # --- 2. SECURITY ---
 if "GEMINI_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
 else:
     st.error("API Key not found in Secrets!")
     st.stop()
