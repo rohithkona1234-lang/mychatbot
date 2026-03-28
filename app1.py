@@ -1,45 +1,36 @@
 import streamlit as st
 import google.generativeai as genai
 
-st.title("AI Study Assistant (Gemini Edition)")
-st.write("Paste notes and ask questions.")
+st.set_page_config(page_title="AI Study Assistant", layout="centered")
 
-# Input for Gemini API Key
-api_key = st.text_input("Enter your Gemini API key", type="password")
+st.title("🎓 AI Study Assistant")
+st.write("Paste your notes below and ask anything about them.")
 
-notes = st.text_area("Paste your notes here", height=250)
-question = st.text_input("Ask a question")
+# --- THE SECURE CONNECTION ---
+# This looks for the GEMINI_API_KEY you saved in your second screenshot
+if "GEMINI_API_KEY" in st.secrets:
+    api_key = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
+else:
+    st.error("Missing API Key! Please check your Streamlit Secrets.")
+    st.stop()
+
+# No more 'Enter API Key' box! We go straight to the notes.
+notes = st.text_area("📝 Paste your notes here", height=250)
+question = st.text_input("❓ What is your question?")
 
 if st.button("Ask AI"):
-    if not api_key:
-        st.warning("Please enter your API key.")
-    elif not notes.strip():
-        st.warning("Please paste some notes.")
-    elif not question.strip():
-        st.warning("Please enter a question.")
+    if not notes.strip() or not question.strip():
+        st.warning("Please provide both notes and a question.")
     else:
         try:
-            # Configure the Gemini API
-            genai.configure(api_key=api_key)
             model = genai.GenerativeModel('gemini-2.5-flash')
-
-            prompt = f"""
-            You are a helpful study assistant. 
-            Answer the user's question using ONLY the notes below. 
-            If the answer is not in the notes, say: Not found in the notes.
-
-            Notes:
-            {notes}
-
-            Question: 
-            {question}
-            """
-
-            # Generate the response
-            response = model.generate_content(prompt)
+            prompt = f"Answer this question using ONLY the provided notes.\nNotes: {notes}\nQuestion: {question}"
             
-            st.subheader("Answer")
-            st.write(response.text)
+            with st.spinner("Analyzing..."):
+                response = model.generate_content(prompt)
             
+            st.subheader("💡 Answer")
+            st.info(response.text)
         except Exception as e:
-            st.error(f"Error: {e}")
+            st.error(f"Something went wrong: {e}")
